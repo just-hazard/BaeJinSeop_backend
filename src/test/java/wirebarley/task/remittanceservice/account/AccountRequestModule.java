@@ -23,10 +23,10 @@ public class AccountRequestModule {
                 .extract();
     }
 
-    public static ExtractableResponse<Response> 계좌_삭제_요청(ExtractableResponse<Response> response) {
+    public static ExtractableResponse<Response> 계좌_삭제_요청(String location) {
         return given()
                 .when()
-                .delete(headerLocation(response))
+                .delete(location)
                 .then().log().all()
                 .extract();
     }
@@ -53,7 +53,7 @@ public class AccountRequestModule {
         );
     }
 
-    private static String headerLocation(ExtractableResponse<Response> response) {
+    public static String headerLocation(ExtractableResponse<Response> response) {
         return response.header("Location");
     }
 }

@@ -28,4 +28,8 @@ public class Account extends BaseEntity {
     public static Account of(String accountNumber, BigDecimal balance) {
         return new Account(accountNumber, balance);
     }
+
+    public boolean checkAmountExists() {
+        return balance.compareTo(BigDecimal.ZERO) == 0;
+    }
 }

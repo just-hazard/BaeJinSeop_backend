@@ -10,18 +10,32 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AccountTest {
 
-    private Account 계좌;
+    private Account account;
 
     @DisplayName("정적 팩토리 메서드")
     @Test
     void accountStaticFactoryMethod() {
-        var 계좌번호 = "1234";
-        var 금액 = new BigDecimal(100000);
+        var accountNumber = "1234";
+        var balance = new BigDecimal(100000);
 
-        계좌 = Account.of(계좌번호, 금액);
+        account = Account.of(accountNumber, balance);
         assertAll(
-            () -> assertThat(계좌.getAccountNumber()).isEqualTo(계좌번호),
-            () -> assertThat(계좌.getBalance()).isEqualTo(금액)
+            () -> assertThat(account.getAccountNumber()).isEqualTo(accountNumber),
+            () -> assertThat(account.getBalance()).isEqualTo(balance)
         );
+    }
+
+    @Test
+    void checkAmountExists_return_true() {
+        account = Account.of("1234", new BigDecimal(0));
+
+        assertTrue(account.checkAmountExists());
+    }
+
+    @Test
+    void checkAmountExists_return_false() {
+        account = Account.of("1234", new BigDecimal(10000));
+
+        assertFalse(account.checkAmountExists());
     }
 }

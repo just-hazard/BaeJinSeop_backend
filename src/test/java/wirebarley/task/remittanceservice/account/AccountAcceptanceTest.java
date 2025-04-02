@@ -23,7 +23,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
     public void setUp() {
         super.setUp();
 
-        request = new AccountRequest("1234", new BigDecimal(10000000));
+        request = new AccountRequest("1234", new BigDecimal(0));
     }
 
     @DisplayName("계좌를 생성한다")
@@ -54,8 +54,28 @@ public class AccountAcceptanceTest extends AcceptanceTest {
         var createResponse=
                 AccountRequestModule.계좌_생성_요청(request);
 
-        var response = AccountRequestModule.계좌_삭제_요청(createResponse);
+        var response = AccountRequestModule.계좌_삭제_요청(AccountRequestModule.headerLocation(createResponse));
 
         AccountRequestModule.응답코드_확인(response, HttpStatus.NO_CONTENT.value());
+    }
+
+    @DisplayName("존재하지 않는 계좌를 삭제한다")
+    @Test
+    void notExistsRemoveAccount() {
+        var response = AccountRequestModule.계좌_삭제_요청("/accounts/1");
+
+        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(response.body().asString()).isEqualTo(ErrorMessage.ACCOUNT_NOT_EXISTS);
+    }
+
+    @DisplayName("잔액이 있는 계좌를 삭제한다")
+    @Test
+    void deleteAnAccountWithBalance() {
+        request.setBalance(new BigDecimal(10000));
+        var createResponse=
+                AccountRequestModule.계좌_생성_요청(request);
+        var response = AccountRequestModule.계좌_삭제_요청(AccountRequestModule.headerLocation(createResponse));
+        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(response.body().asString()).isEqualTo(ErrorMessage.BALANCE_NOT_EMPTY);
     }
 }
