@@ -25,6 +25,7 @@ class AccountTest {
         );
     }
 
+    @DisplayName("금액이 0원일 경우")
     @Test
     void checkAmountExists_return_true() {
         account = Account.of("1234", new BigDecimal(0));
@@ -32,10 +33,19 @@ class AccountTest {
         assertTrue(account.checkAmountExists());
     }
 
+    @DisplayName("금액이 0원보다 클 경우")
     @Test
     void checkAmountExists_return_false() {
         account = Account.of("1234", new BigDecimal(10000));
 
         assertFalse(account.checkAmountExists());
+    }
+
+    @DisplayName("입금된 금액을 더하다")
+    @Test
+    void depositAmount() {
+        account = Account.of("1234", new BigDecimal(10000));
+        account.depositAmount(new BigDecimal(10000));
+        assertThat(account.getBalance()).isEqualTo(new BigDecimal(20000));
     }
 }

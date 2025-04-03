@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 
 @Entity
 @Getter
-@Table
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account extends BaseEntity {
     @Id
@@ -31,5 +30,9 @@ public class Account extends BaseEntity {
 
     public boolean checkAmountExists() {
         return balance.compareTo(BigDecimal.ZERO) == 0;
+    }
+
+    public void depositAmount(BigDecimal amount) {
+        balance = balance.add(amount);
     }
 }

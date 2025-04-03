@@ -32,11 +32,6 @@ class AccountServiceTest {
 
     private Account account;
 
-    @BeforeEach
-    void setUp() {
-        accountService = new AccountService(accountRepository);
-    }
-
     @DisplayName("계좌 생성")
     @Test
     void createAccount() {
