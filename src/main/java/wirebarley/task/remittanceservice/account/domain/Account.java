@@ -32,7 +32,7 @@ public class Account extends BaseEntity {
         return balance.compareTo(BigDecimal.ZERO) == 0;
     }
 
-    public void depositAmount(BigDecimal amount) {
+    public void deposit(BigDecimal amount) {
         balance = balance.add(amount);
     }
 

@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.springframework.http.MediaType;
 import wirebarley.task.remittanceservice.transaction.domain.TransactionType;
 import wirebarley.task.remittanceservice.transaction.dto.DepositRequest;
+import wirebarley.task.remittanceservice.transaction.dto.TransferRequest;
 import wirebarley.task.remittanceservice.transaction.dto.WithdrawalRequest;
 
 import java.math.BigDecimal;
@@ -31,6 +32,16 @@ public class TransactionRequestModule {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .when()
                 .post("/accounts/withdrawal")
+                .then().log().all()
+                .extract();
+    }
+
+    public static ExtractableResponse<Response> 이체_요청(TransferRequest transferRequest) {
+        return given()
+                .body(transferRequest)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when()
+                .post("/accounts/transfer")
                 .then().log().all()
                 .extract();
     }

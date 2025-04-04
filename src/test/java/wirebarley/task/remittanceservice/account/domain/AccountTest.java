@@ -45,7 +45,7 @@ class AccountTest {
     @Test
     void depositAmount() {
         account = Account.of("1234", new BigDecimal(10000));
-        account.depositAmount(new BigDecimal(10000));
+        account.deposit(new BigDecimal(10000));
         assertThat(account.getBalance()).isEqualTo(new BigDecimal(20000));
     }
 
@@ -54,7 +54,7 @@ class AccountTest {
     void compareBalance() {
         account = Account.of("1234", new BigDecimal(10000));
         assertTrue(account.compareBalance(new BigDecimal(11000)));
-        account.depositAmount(new BigDecimal(10000));
+        account.deposit(new BigDecimal(10000));
         assertFalse(account.compareBalance(new BigDecimal(11000)));
     }
 

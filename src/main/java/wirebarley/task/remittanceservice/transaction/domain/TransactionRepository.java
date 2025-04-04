@@ -18,4 +18,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("accountNumber") String accountNumber,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+            "WHERE t.account.accountNumber = :accountNumber " +
+            "AND t.type = 'SEND_TRANSFER' " +
+            "AND t.createdDate BETWEEN :start AND :end")
+    Optional<BigDecimal> sumTransfersForToday(
+            @Param("accountNumber") String accountNumber,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

@@ -9,6 +9,7 @@ import wirebarley.task.remittanceservice.AcceptanceTest;
 import wirebarley.task.remittanceservice.account.AccountRequestModule;
 import wirebarley.task.remittanceservice.account.dto.AccountRequest;
 import wirebarley.task.remittanceservice.transaction.dto.DepositRequest;
+import wirebarley.task.remittanceservice.transaction.dto.TransferRequest;
 import wirebarley.task.remittanceservice.transaction.dto.WithdrawalRequest;
 import wirebarley.task.remittanceservice.util.exception.ErrorMessage;
 
@@ -118,5 +119,92 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
         var response = TransactionRequestModule.출금_요청(withdrawalRequest);
         AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
         AssertionsForClassTypes.assertThat(response.body().asString()).isEqualTo(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED);
+    }
+
+    @DisplayName("계좌 이체를 한다")
+    @Test
+    void transfer() {
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountResponse=
+                AccountRequestModule.계좌_생성_요청(sendAccountRequest);
+
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountResponse=
+                AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
+
+        var transferRequest = new TransferRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                receiveAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(2000000)
+        );
+
+        var response = TransactionRequestModule.이체_요청(transferRequest);
+        AccountRequestModule.응답코드_확인(response, HttpStatus.OK.value());
+    }
+
+    @DisplayName("존재하지 않는 계좌에 이체를 시도한다")
+    @Test
+    void notExistsAccount_transfer() {
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountResponse=
+                AccountRequestModule.계좌_생성_요청(sendAccountRequest);
+
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountResponse=
+                AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
+
+        var transferRequest = new TransferRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                10L,
+                new BigDecimal(2000000)
+        );
+
+        var response = TransactionRequestModule.이체_요청(transferRequest);
+        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        AssertionsForClassTypes.assertThat(response.body().asString()).isEqualTo(ErrorMessage.ACCOUNT_NOT_EXISTS);
+    }
+
+    @DisplayName("이체 시 잔액이 부족할 때")
+    @Test
+    void insufficientBalance_transfer() {
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(0));
+        var sendAccountResponse=
+                AccountRequestModule.계좌_생성_요청(sendAccountRequest);
+
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountResponse=
+                AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
+
+        var transferRequest = new TransferRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                receiveAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(2000000)
+        );
+
+        var response = TransactionRequestModule.이체_요청(transferRequest);
+        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        AssertionsForClassTypes.assertThat(response.body().asString()).isEqualTo(ErrorMessage.INSUFFICIENT_BALANCE);
+    }
+
+    @DisplayName("당일 이체 한도 초과")
+    @Test
+    void limitExceeded_transfer() {
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountResponse=
+                AccountRequestModule.계좌_생성_요청(sendAccountRequest);
+
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountResponse=
+                AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
+
+        var transferRequest = new TransferRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                receiveAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(3100000)
+        );
+
+        var response = TransactionRequestModule.이체_요청(transferRequest);
+        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        AssertionsForClassTypes.assertThat(response.body().asString()).isEqualTo(ErrorMessage.TRANSFER_LIMIT_EXCEEDED);
     }
 }

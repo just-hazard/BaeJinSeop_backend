@@ -6,9 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wirebarley.task.remittanceservice.transaction.application.TransactionService;
-import wirebarley.task.remittanceservice.transaction.dto.DepositRequest;
-import wirebarley.task.remittanceservice.transaction.dto.DepositResponse;
-import wirebarley.task.remittanceservice.transaction.dto.WithdrawalRequest;
+import wirebarley.task.remittanceservice.transaction.dto.*;
 
 @RestController
 @RequestMapping("/accounts")
@@ -25,7 +23,12 @@ public class TransactionController {
     }
 
     @PostMapping("/withdrawal")
-    public ResponseEntity<?> withdrawal(@RequestBody WithdrawalRequest request) {
+    public ResponseEntity<WithdrawalResponse> withdrawal(@RequestBody WithdrawalRequest request) {
         return ResponseEntity.ok().body(transactionService.withdrawal(request));
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<TransferResponse> transfer(@RequestBody TransferRequest request) {
+        return ResponseEntity.ok().body(transactionService.transfer(request));
     }
 }

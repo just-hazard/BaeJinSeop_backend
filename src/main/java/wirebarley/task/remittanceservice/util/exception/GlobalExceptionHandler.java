@@ -38,4 +38,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED);
     }
+
+    @ExceptionHandler(TransferLimitExceededException.class)
+    public ResponseEntity<String> handleTransferLimitExceededException(TransferLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorMessage.TRANSFER_LIMIT_EXCEEDED);
+    }
 }
