@@ -48,4 +48,21 @@ class AccountTest {
         account.depositAmount(new BigDecimal(10000));
         assertThat(account.getBalance()).isEqualTo(new BigDecimal(20000));
     }
+
+    @DisplayName("송금할 금액이 통장 잔고와 비교해서 0보다 큰지 비교하다")
+    @Test
+    void compareBalance() {
+        account = Account.of("1234", new BigDecimal(10000));
+        assertTrue(account.compareBalance(new BigDecimal(11000)));
+        account.depositAmount(new BigDecimal(10000));
+        assertFalse(account.compareBalance(new BigDecimal(11000)));
+    }
+
+    @DisplayName("출금하다")
+    @Test
+    void withdrawal() {
+        account = Account.of("1234", new BigDecimal(10000));
+        account.withdrawal(new BigDecimal(5000));
+        assertEquals(account.getBalance(), new BigDecimal(5000));
+    }
 }

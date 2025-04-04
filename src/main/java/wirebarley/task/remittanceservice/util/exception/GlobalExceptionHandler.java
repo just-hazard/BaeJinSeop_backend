@@ -26,4 +26,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorMessage.BALANCE_NOT_EMPTY);
     }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<String> handleInsufficientBalanceException(InsufficientBalanceException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorMessage.INSUFFICIENT_BALANCE);
+    }
+
+    @ExceptionHandler(WithdrawalLimitExceededException.class)
+    public ResponseEntity<String> handleWithdrawalLimitExceededException(WithdrawalLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED);
+    }
 }

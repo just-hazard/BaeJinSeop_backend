@@ -35,4 +35,12 @@ public class Account extends BaseEntity {
     public void depositAmount(BigDecimal amount) {
         balance = balance.add(amount);
     }
+
+    public boolean compareBalance(BigDecimal amount) {
+        return balance.compareTo(amount) < 0;
+    }
+
+    public void withdrawal(BigDecimal amount) {
+        balance = balance.subtract(amount);
+    }
 }
