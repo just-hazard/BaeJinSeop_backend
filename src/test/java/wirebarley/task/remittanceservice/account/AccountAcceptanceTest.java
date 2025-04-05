@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import wirebarley.task.remittanceservice.AcceptanceModule;
 import wirebarley.task.remittanceservice.AcceptanceTest;
 import wirebarley.task.remittanceservice.account.dto.AccountRequest;
 import wirebarley.task.remittanceservice.util.exception.ErrorMessage;
@@ -32,9 +33,9 @@ public class AccountAcceptanceTest extends AcceptanceTest {
         var response=
                 AccountRequestModule.계좌_생성_요청(request);
 
-        AccountRequestModule.응답코드_확인(response, HttpStatus.CREATED.value());
-        AccountRequestModule.URI_검증(response);
-        AccountRequestModule.컨텐츠유형_확인(response, MediaType.APPLICATION_JSON_VALUE);
+        AcceptanceModule.응답코드_확인(response, HttpStatus.CREATED.value());
+        AcceptanceModule.URI_검증(response);
+        AcceptanceModule.컨텐츠유형_확인(response, MediaType.APPLICATION_JSON_VALUE);
         AccountRequestModule.계좌_생성_검증(request, response);
     }
 
@@ -44,7 +45,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
         AccountRequestModule.계좌_생성_요청(request);
         var response = AccountRequestModule.계좌_생성_요청(request);
 
-        AccountRequestModule.응답코드_확인(response, HttpStatus.CONFLICT.value());
+        AcceptanceModule.응답코드_확인(response, HttpStatus.CONFLICT.value());
         assertThat(response.body().asString()).isEqualTo(ErrorMessage.DATA_ALREADY_EXISTS);
     }
 
@@ -56,7 +57,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
 
         var response = AccountRequestModule.계좌_삭제_요청(AccountRequestModule.headerLocation(createResponse));
 
-        AccountRequestModule.응답코드_확인(response, HttpStatus.NO_CONTENT.value());
+        AcceptanceModule.응답코드_확인(response, HttpStatus.NO_CONTENT.value());
     }
 
     @DisplayName("존재하지 않는 계좌를 삭제한다")
@@ -64,7 +65,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
     void notExistsRemoveAccount() {
         var response = AccountRequestModule.계좌_삭제_요청("/accounts/1");
 
-        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        AcceptanceModule.응답코드_확인(response, HttpStatus.NOT_FOUND.value());
         assertThat(response.body().asString()).isEqualTo(ErrorMessage.ACCOUNT_NOT_EXISTS);
     }
 
@@ -75,7 +76,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
         var createResponse=
                 AccountRequestModule.계좌_생성_요청(request);
         var response = AccountRequestModule.계좌_삭제_요청(AccountRequestModule.headerLocation(createResponse));
-        AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        AcceptanceModule.응답코드_확인(response, HttpStatus.BAD_REQUEST.value());
         assertThat(response.body().asString()).isEqualTo(ErrorMessage.BALANCE_NOT_EMPTY);
     }
 }

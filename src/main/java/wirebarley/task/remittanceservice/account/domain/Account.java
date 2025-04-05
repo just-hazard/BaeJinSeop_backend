@@ -21,6 +21,8 @@ public class Account extends BaseEntity {
 
     private String name;
 
+    private boolean isDeleted = false;
+
     public Account(String accountNumber, BigDecimal balance, String name) {
         this.accountNumber = accountNumber;
         this.balance = balance;
@@ -45,5 +47,9 @@ public class Account extends BaseEntity {
 
     public void withdrawal(BigDecimal amount) {
         balance = balance.subtract(amount);
+    }
+
+    public void markAsDeleted() {
+        isDeleted = true;
     }
 }

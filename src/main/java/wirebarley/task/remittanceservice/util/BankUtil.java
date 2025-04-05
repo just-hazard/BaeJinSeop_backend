@@ -11,6 +11,9 @@ public class BankUtil {
     }
 
     public static BigDecimal removeDecimalPoint(BigDecimal amount) {
-        return amount.setScale(0, RoundingMode.HALF_UP);
+        if(amount != null) {
+            return amount.setScale(0, RoundingMode.HALF_UP);
+        }
+        return null;
     }
 }

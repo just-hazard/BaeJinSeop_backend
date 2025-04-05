@@ -14,19 +14,19 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @PostMapping("/deposit")
-    public ResponseEntity<DepositResponse> deposit(@RequestBody DepositRequest request) {
-        return ResponseEntity.ok().body(transactionService.deposit(request));
+    @PostMapping("/{id}/deposit")
+    public ResponseEntity<DepositResponse> deposit(@RequestBody DepositRequest request, @PathVariable Long id) {
+        return ResponseEntity.ok().body(transactionService.deposit(request, id));
     }
 
-    @PostMapping("/withdrawal")
-    public ResponseEntity<WithdrawalResponse> withdrawal(@RequestBody WithdrawalRequest request) {
-        return ResponseEntity.ok().body(transactionService.withdrawal(request));
+    @PostMapping("/{id}/withdrawal")
+    public ResponseEntity<WithdrawalResponse> withdrawal(@RequestBody WithdrawalRequest request, @PathVariable Long id) {
+        return ResponseEntity.ok().body(transactionService.withdrawal(request, id));
     }
 
-    @PostMapping("/transfer")
-    public ResponseEntity<TransferResponse> transfer(@RequestBody TransferRequest request) {
-        return ResponseEntity.ok().body(transactionService.transfer(request));
+    @PostMapping("/{id}/transfer")
+    public ResponseEntity<TransferResponse> transfer(@RequestBody TransferRequest request, @PathVariable Long id) {
+        return ResponseEntity.ok().body(transactionService.transfer(request, id));
     }
 
     @GetMapping("/{id}/transactions")

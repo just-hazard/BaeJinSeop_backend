@@ -17,31 +17,31 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErrorMessage.ACCOUNT_NOT_EXISTS);
     }
 
     @ExceptionHandler(BalanceNotEmptyException.class)
     public ResponseEntity<String> handleBalanceNotEmptyException(BalanceNotEmptyException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorMessage.BALANCE_NOT_EMPTY);
     }
 
     @ExceptionHandler(InsufficientBalanceException.class)
     public ResponseEntity<String> handleInsufficientBalanceException(InsufficientBalanceException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ErrorMessage.INSUFFICIENT_BALANCE);
     }
 
     @ExceptionHandler(WithdrawalLimitExceededException.class)
     public ResponseEntity<String> handleWithdrawalLimitExceededException(WithdrawalLimitExceededException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED);
     }
 
     @ExceptionHandler(TransferLimitExceededException.class)
     public ResponseEntity<String> handleTransferLimitExceededException(TransferLimitExceededException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErrorMessage.TRANSFER_LIMIT_EXCEEDED);
     }
 }

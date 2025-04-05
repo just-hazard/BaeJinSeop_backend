@@ -38,13 +38,14 @@ class AccountServiceTest {
         var balance = new BigDecimal(10000);
         var name = "홍길동";
         account = new Account(accountNumber, balance, name);
-        when(accountRepository.save(any(Account.class))).thenReturn(account);
 
+        when(accountRepository.save(any(Account.class))).thenReturn(account);
         var response = accountService.createAccount(new AccountRequest(accountNumber, balance, name));
 
         assertAll(
             () -> assertThat(response.getAccountNumber()).isEqualTo(accountNumber),
-            () -> assertThat(response.getBalance()).isEqualTo(balance)
+            () -> assertThat(response.getBalance()).isEqualTo(balance),
+            () -> assertThat(response.getName()).isEqualTo(name)
         );
     }
 
@@ -52,11 +53,11 @@ class AccountServiceTest {
     @Test
     void deleteAccount() {
         account = new Account("1234", new BigDecimal(0), "홍길동");
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
         accountService.deleteAccount(1L);
 
-        verify(accountRepository, times(1)).delete(account);
+        assertTrue(account.isDeleted());
     }
 
     @DisplayName("계좌가 없을 때")
@@ -68,20 +69,19 @@ class AccountServiceTest {
         });
 
         assertEquals(ErrorMessage.ACCOUNT_NOT_EXISTS, exception.getMessage());
-        verify(accountRepository, never()).delete(account);
     }
 
     @DisplayName("계좌에 잔액이 존재할 시")
     @Test
     void deleteAccount_BalanceNotEmpty() {
         account = new Account("1234", new BigDecimal(10000), "홍길동");
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
         var exception = assertThrows(BalanceNotEmptyException.class, () -> {
             accountService.deleteAccount(1L);
         });
 
         assertEquals(ErrorMessage.BALANCE_NOT_EMPTY, exception.getMessage());
-        verify(accountRepository, never()).delete(account);
+        assertFalse(account.isDeleted());
     }
 }

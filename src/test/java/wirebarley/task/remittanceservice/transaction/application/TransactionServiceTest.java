@@ -69,7 +69,7 @@ class TransactionServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
 
-        var response = transactionService.deposit(new DepositRequest(accountId, amount));
+        var response = transactionService.deposit(new DepositRequest(amount), accountId);
 
         assertEquals(transaction.getAmount(), response.getBalance());
         assertEquals(transaction.getType().name(), response.getType());
@@ -87,7 +87,7 @@ class TransactionServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
 
         var exception = assertThrows(EntityNotFoundException.class, () ->
-                transactionService.deposit(new DepositRequest(accountId, amount)));
+                transactionService.deposit(new DepositRequest(amount), accountId));
 
         assertEquals(ErrorMessage.ACCOUNT_NOT_EXISTS, exception.getMessage());
         verify(accountRepository, times(1)).findById(accountId);
@@ -114,7 +114,7 @@ class TransactionServiceTest {
         when(transactionRepository.sumWithdrawalsForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay()))
                 .thenReturn(Optional.of(amount));
 
-        var response = transactionService.withdrawal(new WithdrawalRequest(accountId, amount));
+        var response = transactionService.withdrawal(new WithdrawalRequest(amount), accountId);
 
         assertEquals(new BigDecimal(600000), response.getBalance());
         assertEquals(amount, response.getAmount());
@@ -133,7 +133,7 @@ class TransactionServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
 
         var exception = assertThrows(EntityNotFoundException.class, () ->
-                transactionService.withdrawal(new WithdrawalRequest(accountId, amount)));
+                transactionService.withdrawal(new WithdrawalRequest(amount), accountId));
 
         assertEquals(ErrorMessage.ACCOUNT_NOT_EXISTS, exception.getMessage());
         verify(accountRepository, times(1)).findById(any());
@@ -152,7 +152,7 @@ class TransactionServiceTest {
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
         var exception = assertThrows(InsufficientBalanceException.class, () ->
-                transactionService.withdrawal(new WithdrawalRequest(accountId, amount)));
+                transactionService.withdrawal(new WithdrawalRequest(amount), accountId));
 
         assertEquals(ErrorMessage.INSUFFICIENT_BALANCE, exception.getMessage());
         verify(accountRepository, times(1)).findById(accountId);
@@ -173,7 +173,7 @@ class TransactionServiceTest {
                 .thenReturn(Optional.of(amount));
 
         var exception = assertThrows(WithdrawalLimitExceededException.class, () -> {
-            transactionService.withdrawal(new WithdrawalRequest(accountId, amount));
+            transactionService.withdrawal(new WithdrawalRequest(amount), accountId);
         });
 
         assertEquals(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED, exception.getMessage());
@@ -208,17 +208,17 @@ class TransactionServiceTest {
                 .build();
 
         when(accountRepository.findById(sendAccountId)).thenReturn(Optional.of(sendAccount));
-        when(accountRepository.findById(receiveAccountId)).thenReturn(Optional.of(receiveAccount));
+        when(accountRepository.findByAccountNumber(receiveAccount.getAccountNumber())).thenReturn(Optional.of(receiveAccount));
         when(transactionRepository.save(any(Transaction.class)))
                 .thenReturn(sendTransaction)
                 .thenReturn(receiveTransaction);
         when(transactionRepository.sumTransfersForToday(sendAccount.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay()))
                 .thenReturn(Optional.of(amount));
 
-        var response = transactionService.transfer(new TransferRequest(sendAccountId,receiveAccountId, amount));
+        var response = transactionService.transfer(new TransferRequest(receiveAccount.getAccountNumber(), amount), sendAccountId);
 
         verify(accountRepository, times(1)).findById(sendAccountId);
-        verify(accountRepository, times(1)).findById(receiveAccountId);
+        verify(accountRepository, times(1)).findByAccountNumber(receiveAccount.getAccountNumber());
         verify(transactionRepository, times(1)).sumTransfersForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay());
         verify(transactionRepository, times(2)).save(any(Transaction.class));
     }
@@ -234,14 +234,14 @@ class TransactionServiceTest {
         var amount = new BigDecimal(500000);
 
         when(accountRepository.findById(sendAccountId)).thenReturn(Optional.of(sendAccount));
-        when(accountRepository.findById(receiveAccountId)).thenReturn(Optional.empty());
+        when(accountRepository.findByAccountNumber(receiveAccount.getAccountNumber())).thenReturn(Optional.empty());
 
         var exception = assertThrows(EntityNotFoundException.class, () ->
-                transactionService.transfer(new TransferRequest(sendAccountId,receiveAccountId, amount)));
+                transactionService.transfer(new TransferRequest(receiveAccount.getAccountNumber(), amount), sendAccountId));
 
         assertEquals(ErrorMessage.ACCOUNT_NOT_EXISTS, exception.getMessage());
         verify(accountRepository, times(1)).findById(sendAccountId);
-        verify(accountRepository, times(1)).findById(receiveAccountId);
+        verify(accountRepository, times(1)).findByAccountNumber(receiveAccount.getAccountNumber());
         verify(transactionRepository, never()).sumTransfersForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay());
         verify(transactionRepository, never()).save(any(Transaction.class));
     }
@@ -257,14 +257,14 @@ class TransactionServiceTest {
         var amount = new BigDecimal(500000);
 
         when(accountRepository.findById(sendAccountId)).thenReturn(Optional.of(sendAccount));
-        when(accountRepository.findById(receiveAccountId)).thenReturn(Optional.of(receiveAccount));
+        when(accountRepository.findByAccountNumber(receiveAccount.getAccountNumber())).thenReturn(Optional.of(receiveAccount));
 
         var exception = assertThrows(InsufficientBalanceException.class, () ->
-                transactionService.transfer(new TransferRequest(sendAccountId,receiveAccountId, amount)));
+                transactionService.transfer(new TransferRequest(receiveAccount.getAccountNumber(), amount), sendAccountId));
 
         assertEquals(ErrorMessage.INSUFFICIENT_BALANCE, exception.getMessage());
         verify(accountRepository, times(1)).findById(sendAccountId);
-        verify(accountRepository, times(1)).findById(receiveAccountId);
+        verify(accountRepository, times(1)).findByAccountNumber(receiveAccount.getAccountNumber());
         verify(transactionRepository, never()).sumTransfersForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay());
         verify(transactionRepository, never()).save(any(Transaction.class));
     }
@@ -280,16 +280,16 @@ class TransactionServiceTest {
         var amount = new BigDecimal(500000);
 
         when(accountRepository.findById(sendAccountId)).thenReturn(Optional.of(sendAccount));
-        when(accountRepository.findById(receiveAccountId)).thenReturn(Optional.of(receiveAccount));
+        when(accountRepository.findByAccountNumber(receiveAccount.getAccountNumber())).thenReturn(Optional.of(receiveAccount));
         when(transactionRepository.sumTransfersForToday(sendAccount.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay()))
                 .thenReturn(Optional.of(new BigDecimal(2600000)));
 
         var exception = assertThrows(TransferLimitExceededException.class, () ->
-                transactionService.transfer(new TransferRequest(sendAccountId,receiveAccountId, amount)));
+                transactionService.transfer(new TransferRequest(receiveAccount.getAccountNumber(), amount), sendAccountId));
 
         assertEquals(ErrorMessage.TRANSFER_LIMIT_EXCEEDED, exception.getMessage());
         verify(accountRepository, times(1)).findById(sendAccountId);
-        verify(accountRepository, times(1)).findById(receiveAccountId);
+        verify(accountRepository, times(1)).findByAccountNumber(receiveAccount.getAccountNumber());
         verify(transactionRepository, times(1)).sumTransfersForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay());
         verify(transactionRepository, never()).save(any(Transaction.class));
     }
@@ -302,15 +302,15 @@ class TransactionServiceTest {
                 Transaction.builder()
                         .account(new Account("1234", new BigDecimal(10000), "홍길동"))
                         .amount(new BigDecimal(10000))
-                        .postTransactionAmount(new BigDecimal(10000))
+                        .afterAmount(new BigDecimal(10000))
                         .type(TransactionType.DEPOSIT)
                         .build(),
                 Transaction.builder()
                         .account(new Account("1234", new BigDecimal(10000), "홍길동"))
                         .amount(new BigDecimal(10000))
-                        .postTransactionAmount(new BigDecimal(10000))
-                        .counterpartyName("고길동")
-                        .counterpartyAccountNumber("12345")
+                        .afterAmount(new BigDecimal(10000))
+                        .targetName("고길동")
+                        .targetAccountNumber("12345")
                         .type(TransactionType.TRANSFER_OUT)
                         .build()
         );

@@ -30,8 +30,8 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    public DepositResponse deposit(DepositRequest request) {
-        var account = findAccount(request.getAccountId());
+    public DepositResponse deposit(DepositRequest request, Long id) {
+        var account = findAccount(id);
         account.deposit(request.getAmount());
         return DepositResponse.from(
                 transactionRepository.save(
@@ -39,21 +39,21 @@ public class TransactionService {
                             .builder()
                             .account(account)
                             .amount(request.getAmount())
-                            .postTransactionAmount(account.getBalance())
+                            .afterAmount(account.getBalance())
                             .type(TransactionType.DEPOSIT)
                             .build()
                 )
         );
     }
 
-    public WithdrawalResponse withdrawal(WithdrawalRequest request) {
-        var account = findAccount(request.getAccountId());
-        confirmEnoughAmount(request.getAmount(), account);
+    public WithdrawalResponse withdrawal(WithdrawalRequest request, Long id) {
+        var account = findAccount(id);
+        validateEnoughAmount(request.getAmount(), account);
 
         var totalWithdrawnToday = transactionRepository.sumWithdrawalsForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay())
                 .orElse(BigDecimal.ZERO);
 
-        checkWithdrawalLimit(BankUtil.removeDecimalPoint(totalWithdrawnToday), request.getAmount());
+        validateWithdrawalLimit(BankUtil.removeDecimalPoint(totalWithdrawnToday), request.getAmount());
 
         account.withdrawal(request.getAmount());
 
@@ -63,26 +63,27 @@ public class TransactionService {
                     .builder()
                     .account(account)
                     .amount(request.getAmount().negate())
-                    .postTransactionAmount(account.getBalance())
+                    .afterAmount(account.getBalance())
                     .type(TransactionType.WITHDRAWAL)
                     .build()
             )
         );
     }
 
-    public TransferResponse transfer(TransferRequest request) {
-        var fromAccount = findAccount(request.getFromAccountId());
-        var toAccount = findAccount(request.getToAccountId());
+    public TransferResponse transfer(TransferRequest request, Long id) {
+        var fromAccount = findAccount(id);
+        var toAccount = accountRepository.findByAccountNumber(request.getToAccountNumber())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.ACCOUNT_NOT_EXISTS));
 
         var fee = BankUtil.calculateTransferFee(request.getAmount());
         var totalAmount = request.getAmount().add(fee);
 
-        confirmEnoughAmount(request.getAmount(), fromAccount);
+        validateEnoughAmount(request.getAmount(), fromAccount);
 
         var totalTransferToday = transactionRepository.sumTransfersForToday(fromAccount.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay())
                 .orElse(BigDecimal.ZERO);
 
-        checkTransferLimit(BankUtil.removeDecimalPoint(totalTransferToday), request.getAmount());
+        validateTransferLimit(BankUtil.removeDecimalPoint(totalTransferToday), request.getAmount());
 
         fromAccount.withdrawal(totalAmount);
         toAccount.deposit(request.getAmount());
@@ -94,9 +95,9 @@ public class TransactionService {
                                 .account(fromAccount)
                                 .amount(request.getAmount().negate())
                                 .fee(fee)
-                                .counterpartyName(toAccount.getName())
-                                .counterpartyAccountNumber(toAccount.getAccountNumber())
-                                .postTransactionAmount(fromAccount.getBalance())
+                                .targetName(toAccount.getName())
+                                .targetAccountNumber(toAccount.getAccountNumber())
+                                .afterAmount(fromAccount.getBalance())
                                 .type(TransactionType.TRANSFER_OUT)
                                 .build()
                 ),
@@ -105,9 +106,9 @@ public class TransactionService {
                                 .builder()
                                 .account(toAccount)
                                 .amount(request.getAmount())
-                                .counterpartyName(fromAccount.getName())
-                                .counterpartyAccountNumber(fromAccount.getAccountNumber())
-                                .postTransactionAmount(toAccount.getBalance())
+                                .targetName(fromAccount.getName())
+                                .targetAccountNumber(fromAccount.getAccountNumber())
+                                .afterAmount(toAccount.getBalance())
                                 .type(TransactionType.TRANSFER_IN)
                                 .build()
                 )
@@ -119,20 +120,20 @@ public class TransactionService {
         return TransactionHistoryResponse.from(transactionRepository.findByAccountTransactionHistory(accountId));
     }
 
-    private void confirmEnoughAmount(BigDecimal amount, Account account) {
+    private void validateEnoughAmount(BigDecimal amount, Account account) {
         if (account.compareBalance(amount)) {
             throw new InsufficientBalanceException(ErrorMessage.INSUFFICIENT_BALANCE);
         }
     }
 
-    private void checkWithdrawalLimit(BigDecimal totalWithdrawnToday, BigDecimal amount) {
+    private void validateWithdrawalLimit(BigDecimal totalWithdrawnToday, BigDecimal amount) {
         final BigDecimal DAILY_WITHDRAWAL_LIMIT = new BigDecimal("1000000");
         if (totalWithdrawnToday.add(amount).compareTo(DAILY_WITHDRAWAL_LIMIT) > 0) {
             throw new WithdrawalLimitExceededException(ErrorMessage.WITHDRAWAL_LIMIT_EXCEEDED);
         }
     }
 
-    private void checkTransferLimit(BigDecimal totalTransferToday, BigDecimal amount) {
+    private void validateTransferLimit(BigDecimal totalTransferToday, BigDecimal amount) {
         final BigDecimal DAILY_TRANSFER_LIMIT = new BigDecimal("3000000");
         if (totalTransferToday.add(amount).compareTo(DAILY_TRANSFER_LIMIT) > 0) {
             throw new TransferLimitExceededException(ErrorMessage.TRANSFER_LIMIT_EXCEEDED);

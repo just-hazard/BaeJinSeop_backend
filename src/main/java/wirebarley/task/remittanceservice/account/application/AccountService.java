@@ -30,6 +30,7 @@ public class AccountService {
         if(!account.checkAmountExists()) {
             throw new BalanceNotEmptyException(ErrorMessage.BALANCE_NOT_EMPTY);
         }
-        accountRepository.delete(account);
+
+        account.markAsDeleted();
     }
 }

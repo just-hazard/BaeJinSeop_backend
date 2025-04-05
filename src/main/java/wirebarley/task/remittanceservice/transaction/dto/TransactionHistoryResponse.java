@@ -3,9 +3,10 @@ package wirebarley.task.remittanceservice.transaction.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import wirebarley.task.remittanceservice.transaction.domain.Transaction;
+import wirebarley.task.remittanceservice.util.BankUtil;
+import wirebarley.task.remittanceservice.util.TimeUtil;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -18,15 +19,16 @@ public class TransactionHistoryResponse {
                 transactions.stream().map(
                         it -> new TransactionHistoryDTO(
                                 it.getAccount().getId(),
+                                it.getAccount().getName(),
                                 it.getAccount().getAccountNumber(),
-                                it.getPostTransactionAmount(),
-                                it.getAmount(),
-                                it.getFee(),
+                                BankUtil.removeDecimalPoint(it.getAfterAmount()),
+                                BankUtil.removeDecimalPoint(it.getAmount()),
+                                BankUtil.removeDecimalPoint(it.getFee()),
                                 it.getType().name(),
-                                it.getCounterpartyName(),
-                                it.getCounterpartyAccountNumber(),
+                                it.getTargetName(),
+                                it.getTargetAccountNumber(),
                                 it.getMemo(),
-                                it.getCreatedDate()
+                                TimeUtil.convertToZonedDateTime(it.getCreatedDate())
                         )
                 ).toList());
     };
@@ -36,13 +38,14 @@ public class TransactionHistoryResponse {
 @Getter
 class TransactionHistoryDTO {
     private Long accountId;
+    private String name;
     private String accountNumber;
     private BigDecimal balance;
     private BigDecimal amount;
     private BigDecimal fee;
     private String type;
-    private String counterpartyName;
-    private String counterpartyAccountNumber;
+    private String targetName;
+    private String targetAccountNumber;
     private String memo;
-    private LocalDateTime date;
+    private String date;
 }

@@ -67,4 +67,12 @@ class AccountTest {
         account.withdrawal(new BigDecimal(5000));
         assertEquals(account.getBalance(), new BigDecimal(5000));
     }
+
+    @DisplayName("소프트 삭제를 한다")
+    @Test
+    void markAsDeleted() {
+        account = Account.of("1234", new BigDecimal(10000), "홍길동");
+        account.markAsDeleted();
+        assertTrue(account.isDeleted());
+    }
 }

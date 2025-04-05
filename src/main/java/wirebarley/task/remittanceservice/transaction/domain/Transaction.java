@@ -29,23 +29,23 @@ public class Transaction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
-    private String counterpartyName;
+    private String targetName;
 
-    private String counterpartyAccountNumber;
+    private String targetAccountNumber;
 
-    private BigDecimal postTransactionAmount;
+    private BigDecimal afterAmount;
 
     private String memo;
 
     @Builder
-    public Transaction(Account account, BigDecimal amount, BigDecimal fee, TransactionType type, String counterpartyName, String counterpartyAccountNumber, BigDecimal postTransactionAmount, String memo) {
+    public Transaction(Account account, BigDecimal amount, BigDecimal fee, TransactionType type, String targetName, String targetAccountNumber, BigDecimal afterAmount, String memo) {
         this.account = account;
         this.amount = amount;
         this.fee = fee;
         this.type = type;
-        this.counterpartyName = counterpartyName;
-        this.counterpartyAccountNumber = counterpartyAccountNumber;
-        this.postTransactionAmount = postTransactionAmount;
+        this.targetName = targetName;
+        this.targetAccountNumber = targetAccountNumber;
+        this.afterAmount = afterAmount;
         this.memo = memo;
     }
 }
