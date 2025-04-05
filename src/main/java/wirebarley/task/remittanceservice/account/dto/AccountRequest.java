@@ -14,8 +14,9 @@ import java.math.BigDecimal;
 public class AccountRequest {
     private String accountNumber;
     private BigDecimal balance;
+    private String name;
 
     public Account toAccount() {
-        return new Account(accountNumber, balance);
+        return new Account(accountNumber, balance, name);
     }
 }

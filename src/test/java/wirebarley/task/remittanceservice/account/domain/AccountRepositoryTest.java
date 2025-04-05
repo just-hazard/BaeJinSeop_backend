@@ -19,8 +19,8 @@ class AccountRepositoryTest {
     @DisplayName("중복된 계좌번호 등록")
     @Test
     void duplicateAccount() {
-        var account = new Account("1234", new BigDecimal(10000));
-        var account1 = new Account("1234", new BigDecimal(10000));
+        var account = new Account("1234", new BigDecimal(10000), "홍길동");
+        var account1 = new Account("1234", new BigDecimal(10000), "홍길동");
         accountRepository.save(account);
 
         assertThrows(DataIntegrityViolationException.class, () -> {

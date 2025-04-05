@@ -1,7 +1,6 @@
 package wirebarley.task.remittanceservice.account.application;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,10 +36,11 @@ class AccountServiceTest {
     void createAccount() {
         var accountNumber = "1234";
         var balance = new BigDecimal(10000);
-        account = new Account(accountNumber, balance);
+        var name = "홍길동";
+        account = new Account(accountNumber, balance, name);
         when(accountRepository.save(any(Account.class))).thenReturn(account);
 
-        var response = accountService.createAccount(new AccountRequest(accountNumber, balance));
+        var response = accountService.createAccount(new AccountRequest(accountNumber, balance, name));
 
         assertAll(
             () -> assertThat(response.getAccountNumber()).isEqualTo(accountNumber),
@@ -51,7 +51,7 @@ class AccountServiceTest {
     @DisplayName("계좌 삭제")
     @Test
     void deleteAccount() {
-        account = new Account("1234", new BigDecimal(0));
+        account = new Account("1234", new BigDecimal(0), "홍길동");
         when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 
         accountService.deleteAccount(1L);
@@ -74,7 +74,7 @@ class AccountServiceTest {
     @DisplayName("계좌에 잔액이 존재할 시")
     @Test
     void deleteAccount_BalanceNotEmpty() {
-        account = new Account("1234", new BigDecimal(10000));
+        account = new Account("1234", new BigDecimal(10000), "홍길동");
         when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 
         var exception = assertThrows(BalanceNotEmptyException.class, () -> {

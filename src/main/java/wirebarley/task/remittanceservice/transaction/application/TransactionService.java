@@ -39,6 +39,7 @@ public class TransactionService {
                             .builder()
                             .account(account)
                             .amount(request.getAmount())
+                            .postTransactionAmount(account.getBalance())
                             .type(TransactionType.DEPOSIT)
                             .build()
                 )
@@ -62,6 +63,7 @@ public class TransactionService {
                     .builder()
                     .account(account)
                     .amount(request.getAmount().negate())
+                    .postTransactionAmount(account.getBalance())
                     .type(TransactionType.WITHDRAWAL)
                     .build()
             )
@@ -92,7 +94,10 @@ public class TransactionService {
                                 .account(fromAccount)
                                 .amount(request.getAmount().negate())
                                 .fee(fee)
-                                .type(TransactionType.SEND_TRANSFER)
+                                .counterpartyName(toAccount.getName())
+                                .counterpartyAccountNumber(toAccount.getAccountNumber())
+                                .postTransactionAmount(fromAccount.getBalance())
+                                .type(TransactionType.TRANSFER_OUT)
                                 .build()
                 ),
                 transactionRepository.save(
@@ -100,10 +105,18 @@ public class TransactionService {
                                 .builder()
                                 .account(toAccount)
                                 .amount(request.getAmount())
-                                .type(TransactionType.RECEIVE_TRANSFER)
+                                .counterpartyName(fromAccount.getName())
+                                .counterpartyAccountNumber(fromAccount.getAccountNumber())
+                                .postTransactionAmount(toAccount.getBalance())
+                                .type(TransactionType.TRANSFER_IN)
                                 .build()
                 )
         );
+    }
+
+    @Transactional(readOnly = true)
+    public TransactionHistoryResponse findTransactionHistory(Long accountId) {
+        return TransactionHistoryResponse.from(transactionRepository.findByAccountTransactionHistory(accountId));
     }
 
     private void confirmEnoughAmount(BigDecimal amount, Account account) {

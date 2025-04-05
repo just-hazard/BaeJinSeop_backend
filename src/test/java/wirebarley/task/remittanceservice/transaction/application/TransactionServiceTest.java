@@ -23,6 +23,7 @@ import wirebarley.task.remittanceservice.util.exception.WithdrawalLimitExceededE
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,7 +50,7 @@ class TransactionServiceTest {
 
     @BeforeEach
     void setUp() {
-        account = new Account("1234", new BigDecimal(0));
+        account = new Account("1234", new BigDecimal(0), "홍길동");
     }
 
     @DisplayName("입금하다")
@@ -96,7 +97,7 @@ class TransactionServiceTest {
     @DisplayName("출금하다")
     @Test
     void withdrawal() {
-        account = new Account("1234", new BigDecimal(1100000));
+        account = new Account("1234", new BigDecimal(1100000), "홍길동");
 
         var accountId = 1L;
         var amount = new BigDecimal(500000);
@@ -143,7 +144,7 @@ class TransactionServiceTest {
     @DisplayName("출금 시 잔액보다 많을 경우")
     @Test
     void withdrawal_InsufficientBalance() {
-        account = new Account("1234", new BigDecimal(800000));
+        account = new Account("1234", new BigDecimal(800000), "홍길동");
 
         var accountId = 1L;
         var amount = new BigDecimal(900000);
@@ -162,7 +163,7 @@ class TransactionServiceTest {
     @DisplayName("당일 출금 한도 초과")
     @Test
     void withdrawal_LimitExceeded() {
-        account = new Account("1234", new BigDecimal(800000));
+        account = new Account("1234", new BigDecimal(800000), "홍길동");
 
         var accountId = 1L;
         var amount = new BigDecimal(550000);
@@ -184,8 +185,8 @@ class TransactionServiceTest {
     @DisplayName("이체하다")
     @Test
     void transfer() {
-        var sendAccount = new Account("1234", new BigDecimal(3100000));
-        var receiveAccount = new Account("1235", new BigDecimal(0));
+        var sendAccount = new Account("1234", new BigDecimal(3100000), "홍길동");
+        var receiveAccount = new Account("1235", new BigDecimal(0), "홍길동");
 
         var sendAccountId = 1L;
         var receiveAccountId = 2L;
@@ -196,14 +197,14 @@ class TransactionServiceTest {
                 .account(sendAccount)
                 .fee(new BigDecimal(5000))
                 .amount(amount.negate())
-                .type(TransactionType.SEND_TRANSFER)
+                .type(TransactionType.TRANSFER_OUT)
                 .build();
 
         var receiveTransaction = Transaction
                 .builder()
                 .account(receiveAccount)
                 .amount(amount)
-                .type(TransactionType.RECEIVE_TRANSFER)
+                .type(TransactionType.TRANSFER_IN)
                 .build();
 
         when(accountRepository.findById(sendAccountId)).thenReturn(Optional.of(sendAccount));
@@ -225,8 +226,8 @@ class TransactionServiceTest {
     @DisplayName("존재하지 않는 계좌로 이체 시")
     @Test
     void transfer_AccountNotFound() {
-        var sendAccount = new Account("1234", new BigDecimal(3100000));
-        var receiveAccount = new Account("1235", new BigDecimal(0));
+        var sendAccount = new Account("1234", new BigDecimal(3100000), "홍길동");
+        var receiveAccount = new Account("1235", new BigDecimal(0), "홍길동");
 
         var sendAccountId = 1L;
         var receiveAccountId = 2L;
@@ -248,8 +249,8 @@ class TransactionServiceTest {
     @DisplayName("이체할 금액보다 잔액이 적을 경우")
     @Test
     void transfer_InsufficientBalance() {
-        var sendAccount = new Account("1234", new BigDecimal(400000));
-        var receiveAccount = new Account("1235", new BigDecimal(0));
+        var sendAccount = new Account("1234", new BigDecimal(400000), "홍길동");
+        var receiveAccount = new Account("1235", new BigDecimal(0), "홍길동");
 
         var sendAccountId = 1L;
         var receiveAccountId = 2L;
@@ -271,8 +272,8 @@ class TransactionServiceTest {
     @DisplayName("당일 계좌이체 금액 한도 초과")
     @Test
     void transfer_LimitExceeded() {
-        var sendAccount = new Account("1234", new BigDecimal(3100000));
-        var receiveAccount = new Account("1235", new BigDecimal(0));
+        var sendAccount = new Account("1234", new BigDecimal(3100000), "홍길동");
+        var receiveAccount = new Account("1235", new BigDecimal(0), "홍길동");
 
         var sendAccountId = 1L;
         var receiveAccountId = 2L;
@@ -291,5 +292,33 @@ class TransactionServiceTest {
         verify(accountRepository, times(1)).findById(receiveAccountId);
         verify(transactionRepository, times(1)).sumTransfersForToday(account.getAccountNumber(), LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay());
         verify(transactionRepository, never()).save(any(Transaction.class));
+    }
+
+    @DisplayName("거래내역 조회")
+    @Test
+    void transactionHistory() {
+        var id = 1L;
+        var transactions = List.of(
+                Transaction.builder()
+                        .account(new Account("1234", new BigDecimal(10000), "홍길동"))
+                        .amount(new BigDecimal(10000))
+                        .postTransactionAmount(new BigDecimal(10000))
+                        .type(TransactionType.DEPOSIT)
+                        .build(),
+                Transaction.builder()
+                        .account(new Account("1234", new BigDecimal(10000), "홍길동"))
+                        .amount(new BigDecimal(10000))
+                        .postTransactionAmount(new BigDecimal(10000))
+                        .counterpartyName("고길동")
+                        .counterpartyAccountNumber("12345")
+                        .type(TransactionType.TRANSFER_OUT)
+                        .build()
+        );
+
+        when(transactionRepository.findByAccountTransactionHistory(any())).thenReturn(transactions);
+        var response = transactionService.findTransactionHistory(id);
+
+        assertEquals(response.getTransactionHistory().size(), 2);
+        verify(transactionRepository, times(1)).findByAccountTransactionHistory(id);
     }
 }

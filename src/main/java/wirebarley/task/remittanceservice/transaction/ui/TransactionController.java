@@ -1,10 +1,7 @@
 package wirebarley.task.remittanceservice.transaction.ui;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import wirebarley.task.remittanceservice.transaction.application.TransactionService;
 import wirebarley.task.remittanceservice.transaction.dto.*;
 
@@ -30,5 +27,10 @@ public class TransactionController {
     @PostMapping("/transfer")
     public ResponseEntity<TransferResponse> transfer(@RequestBody TransferRequest request) {
         return ResponseEntity.ok().body(transactionService.transfer(request));
+    }
+
+    @GetMapping("/{id}/transactions")
+    public ResponseEntity<TransactionHistoryResponse> findTransactionHistory(@PathVariable Long id) {
+        return ResponseEntity.ok().body(transactionService.findTransactionHistory(id));
     }
 }

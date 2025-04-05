@@ -25,7 +25,7 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     public void setUp() {
         super.setUp();
 
-        request = new AccountRequest("1234", new BigDecimal(0));
+        request = new AccountRequest("1234", new BigDecimal(0), "홍길동");
     }
 
     @DisplayName("계좌에 입금한다")
@@ -60,7 +60,7 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("계좌에서 출금한다")
     @Test
     void withdrawal() {
-        request = new AccountRequest("1234", new BigDecimal(10000000));
+        request = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
 
         var accountResponse=
                 AccountRequestModule.계좌_생성_요청(request);
@@ -106,7 +106,7 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("당일 출금 한도 초과일 때")
     @Test
     void withdrawalLimitExceeded() {
-        request = new AccountRequest("1234", new BigDecimal(10000000));
+        request = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
 
         var accountResponse=
                 AccountRequestModule.계좌_생성_요청(request);
@@ -124,11 +124,11 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("계좌 이체를 한다")
     @Test
     void transfer() {
-        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
         var sendAccountResponse=
                 AccountRequestModule.계좌_생성_요청(sendAccountRequest);
 
-        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
         var receiveAccountResponse=
                 AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
 
@@ -145,11 +145,11 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("존재하지 않는 계좌에 이체를 시도한다")
     @Test
     void notExistsAccount_transfer() {
-        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
         var sendAccountResponse=
                 AccountRequestModule.계좌_생성_요청(sendAccountRequest);
 
-        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
         var receiveAccountResponse=
                 AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
 
@@ -167,11 +167,11 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("이체 시 잔액이 부족할 때")
     @Test
     void insufficientBalance_transfer() {
-        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(0));
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(0), "홍길동");
         var sendAccountResponse=
                 AccountRequestModule.계좌_생성_요청(sendAccountRequest);
 
-        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
         var receiveAccountResponse=
                 AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
 
@@ -189,11 +189,11 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
     @DisplayName("당일 이체 한도 초과")
     @Test
     void limitExceeded_transfer() {
-        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000));
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
         var sendAccountResponse=
                 AccountRequestModule.계좌_생성_요청(sendAccountRequest);
 
-        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0));
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
         var receiveAccountResponse=
                 AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
 
@@ -206,5 +206,43 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
         var response = TransactionRequestModule.이체_요청(transferRequest);
         AccountRequestModule.응답코드_확인(response, HttpStatus.INTERNAL_SERVER_ERROR.value());
         AssertionsForClassTypes.assertThat(response.body().asString()).isEqualTo(ErrorMessage.TRANSFER_LIMIT_EXCEEDED);
+    }
+
+    @DisplayName("거래내역을 조회한다")
+    @Test
+    void transactionHistory() {
+        var sendAccountRequest = new AccountRequest("1234", new BigDecimal(10000000), "홍길동");
+        var sendAccountResponse=
+                AccountRequestModule.계좌_생성_요청(sendAccountRequest);
+
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
+        var receiveAccountResponse=
+                AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
+
+        var depositRequest = new DepositRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(10000)
+        );
+
+        TransactionRequestModule.입금_요청(depositRequest);
+
+        var withdrawalRequest = new WithdrawalRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(1000000)
+        );
+
+        TransactionRequestModule.출금_요청(withdrawalRequest);
+
+
+        var transferRequest = new TransferRequest(
+                sendAccountResponse.jsonPath().getLong("id"),
+                receiveAccountResponse.jsonPath().getLong("id"),
+                new BigDecimal(2000000)
+        );
+
+        TransactionRequestModule.이체_요청(transferRequest);
+
+        var response = TransactionRequestModule.내역_조회_요청(sendAccountResponse.jsonPath().getLong("id"));
+        AccountRequestModule.응답코드_확인(response, HttpStatus.OK.value());
     }
 }

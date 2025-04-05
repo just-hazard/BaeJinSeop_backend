@@ -19,13 +19,16 @@ public class Account extends BaseEntity {
 
     private BigDecimal balance;
 
-    public Account(String accountNumber, BigDecimal balance) {
+    private String name;
+
+    public Account(String accountNumber, BigDecimal balance, String name) {
         this.accountNumber = accountNumber;
         this.balance = balance;
+        this.name = name;
     }
 
-    public static Account of(String accountNumber, BigDecimal balance) {
-        return new Account(accountNumber, balance);
+    public static Account of(String accountNumber, BigDecimal balance, String name) {
+        return new Account(accountNumber, balance, name);
     }
 
     public boolean checkAmountExists() {

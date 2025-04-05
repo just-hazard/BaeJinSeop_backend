@@ -18,7 +18,7 @@ public class Transaction extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
@@ -29,11 +29,23 @@ public class Transaction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
 
+    private String counterpartyName;
+
+    private String counterpartyAccountNumber;
+
+    private BigDecimal postTransactionAmount;
+
+    private String memo;
+
     @Builder
-    public Transaction(Account account, BigDecimal amount, BigDecimal fee, TransactionType type) {
+    public Transaction(Account account, BigDecimal amount, BigDecimal fee, TransactionType type, String counterpartyName, String counterpartyAccountNumber, BigDecimal postTransactionAmount, String memo) {
         this.account = account;
         this.amount = amount;
         this.fee = fee;
         this.type = type;
+        this.counterpartyName = counterpartyName;
+        this.counterpartyAccountNumber = counterpartyAccountNumber;
+        this.postTransactionAmount = postTransactionAmount;
+        this.memo = memo;
     }
 }

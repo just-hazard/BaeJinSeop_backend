@@ -46,6 +46,14 @@ public class TransactionRequestModule {
                 .extract();
     }
 
+    public static ExtractableResponse<Response> 내역_조회_요청(Long id) {
+        return given()
+                .when()
+                .get("/accounts/{id}/transactions", id)
+                .then().log().all()
+                .extract();
+    }
+
     public static void 입금_검증(String accountNumber, DepositRequest depositRequest, ExtractableResponse<Response> response) {
         assertAll(
                 () -> assertThat(response.jsonPath().getLong("accountId")).isEqualTo(1),

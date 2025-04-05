@@ -23,7 +23,7 @@ public class AccountAcceptanceTest extends AcceptanceTest {
     public void setUp() {
         super.setUp();
 
-        request = new AccountRequest("1234", new BigDecimal(0));
+        request = new AccountRequest("1234", new BigDecimal(0), "홍길동");
     }
 
     @DisplayName("계좌를 생성한다")
