@@ -9,5 +9,4 @@ class RemittanceServiceApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }

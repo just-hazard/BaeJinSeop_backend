@@ -2,6 +2,7 @@ package wirebarley.task.remittanceservice.transaction.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import wirebarley.task.remittanceservice.account.domain.Account;
 import wirebarley.task.remittanceservice.account.domain.AccountRepository;
@@ -30,6 +31,7 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public DepositResponse deposit(DepositRequest request, Long id) {
         var account = findAccount(id);
         account.deposit(request.getAmount());
@@ -46,6 +48,7 @@ public class TransactionService {
         );
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public WithdrawalResponse withdrawal(WithdrawalRequest request, Long id) {
         var account = findAccount(id);
         validateEnoughAmount(request.getAmount(), account);
@@ -70,6 +73,7 @@ public class TransactionService {
         );
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TransferResponse transfer(TransferRequest request, Long id) {
         var fromAccount = findAccount(id);
         var toAccount = accountRepository.findByAccountNumber(request.getToAccountNumber())
