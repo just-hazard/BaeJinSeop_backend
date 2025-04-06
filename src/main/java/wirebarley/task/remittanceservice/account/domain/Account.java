@@ -19,6 +19,7 @@ public class Account extends BaseEntity {
 
     private BigDecimal balance;
 
+    @Column(nullable = false)
     private String name;
 
     private boolean isDeleted = false;
