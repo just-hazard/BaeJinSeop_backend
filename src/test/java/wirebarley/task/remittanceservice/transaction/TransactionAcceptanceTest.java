@@ -128,7 +128,7 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
         var sendAccountResponse=
                 AccountRequestModule.계좌_생성_요청(sendAccountRequest);
 
-        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "홍길동");
+        var receiveAccountRequest = new AccountRequest("12345", new BigDecimal(0), "고길동");
         var receiveAccountResponse=
                 AccountRequestModule.계좌_생성_요청(receiveAccountRequest);
 
@@ -146,14 +146,14 @@ public class TransactionAcceptanceTest extends AcceptanceTest {
         assertEquals(-2000000, response.jsonPath().getInt("fromAccount.amount"));
         assertEquals(20000, response.jsonPath().getInt("fromAccount.fee"));
         assertEquals("TRANSFER_OUT", response.jsonPath().getString("fromAccount.type"));
-        assertEquals("홍길동", response.jsonPath().getString("fromAccount.targetName"));
+        assertEquals("고길동", response.jsonPath().getString("fromAccount.targetName"));
         assertEquals("12345", response.jsonPath().getString("fromAccount.targetAccountNumber"));
         assertNull(response.jsonPath().get("fromAccount.memo"));
         assertNotNull(response.jsonPath().getString("fromAccount.date"));
 
         // toAccount 검증
         assertEquals(2, response.jsonPath().getInt("toAccount.accountId"));
-        assertEquals("홍길동", response.jsonPath().getString("toAccount.name"));
+        assertEquals("고길동", response.jsonPath().getString("toAccount.name"));
         assertEquals("12345", response.jsonPath().getString("toAccount.accountNumber"));
         assertEquals(2000000, response.jsonPath().getInt("toAccount.balance"));
         assertEquals(2000000, response.jsonPath().getInt("toAccount.amount"));
